@@ -1,0 +1,481 @@
+<title>AgroPlan Redesenhado</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+
+<style>
+/* TOKENS — docs/redesign/05-design-system.md §1. Tema único claro (05 §45). */
+:root{
+  --navy-900:#131e34; --navy-800:#1e2e4f; --navy-700:#2a3f6a; --navy-600:#35507f;
+  --navy-400:#6480ad; --navy-100:#e1e7f0; --navy-50:#f2f5f9;
+  --gold-700:#8a6414; --gold-500:#daa52d; --gold-400:#e4ba5c; --gold-100:#fbf3df;
+  --slate-800:#1a2331; --slate-600:#465366; --slate-500:#5d6b80; --slate-400:#8b97a8;
+  --slate-300:#bec7d3; --slate-200:#dce2ea; --slate-100:#eaeef3; --slate-50:#f3f5f9;
+  --st-prev-fg:#3d4a5c; --st-prev-bg:#edf0f4;
+  --st-rp-fg:#5b21b6; --st-rp-bg:#f3eefc; --st-rp-rail:#7c3aed;
+  --st-ra-fg:#9d174d; --st-ra-bg:#fce9f1; --st-ra-rail:#db2777;
+  --st-ap-fg:#115e59; --st-ap-bg:#e4f4f2; --st-ap-rail:#0d9488;
+  --st-aa-fg:#991b1b; --st-aa-bg:#fce9e9; --st-aa-rail:#dc2626;
+  --st-ok-fg:#166534; --st-ok-bg:#e7f4eb; --st-ok-rail:#16a34a;
+  --st-off-fg:#5d6b80; --st-off-bg:#f1f3f6;
+  --canvas:var(--slate-50); --surface:#fff; --sunken:var(--slate-100);
+  --ink:var(--slate-800); --ink-muted:var(--slate-600); --ink-subtle:var(--slate-500);
+  --action:var(--navy-800); --link:var(--navy-600); --accent:var(--gold-500);
+  --rule:var(--slate-100); --border:var(--slate-200); --border-control:var(--slate-400);
+  --r-control:6px; --r-card:10px; --row-h:48px;
+}
+:root[data-density="compact"]{--row-h:36px}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--canvas);color:var(--ink);font-family:"Barlow",ui-sans-serif,system-ui,sans-serif;font-size:14px;line-height:20px;-webkit-font-smoothing:antialiased}
+:focus-visible{outline:3px solid rgb(53 80 127/.32);outline-offset:1px;border-radius:4px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.mono{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
+.cond{font-family:"Barlow Condensed","Barlow",sans-serif;text-transform:uppercase;letter-spacing:.07em}
+
+/* Harness — não faz parte do produto */
+.harness{background:#0e1727;color:#cbd5e4;padding:8px 16px;display:flex;flex-wrap:wrap;align-items:center;gap:10px;font-size:12px;border-bottom:2px solid var(--gold-500)}
+.harness b{color:var(--gold-400);font-weight:600;letter-spacing:.04em}
+.harness button{font:inherit;font-family:"Barlow",sans-serif;background:transparent;color:#cbd5e4;border:1px solid rgb(255 255 255/.22);border-radius:var(--r-control);padding:3px 10px;cursor:pointer}
+.harness button:hover{background:rgb(255 255 255/.10)}
+.harness button[aria-pressed="true"]{background:var(--gold-500);color:var(--navy-900);border-color:var(--gold-500);font-weight:600}
+.harness .sep{width:1px;height:16px;background:rgb(255 255 255/.18)}
+
+/* Shell */
+.app{display:grid;grid-template-columns:240px 1fr;min-height:700px}
+.side{background:var(--navy-900);display:flex;flex-direction:column;padding-bottom:8px}
+.side-brand{height:56px;display:flex;align-items:center;gap:9px;padding:0 16px;border-bottom:1px solid rgb(255 255 255/.10)}
+.side-brand .mark{width:26px;height:26px;border-radius:5px;flex:none;background:var(--gold-500);display:grid;place-items:center;color:var(--navy-900);font-weight:600;font-size:13px}
+.side-brand span{color:#fff;font-weight:600;font-size:15px}
+.side nav{flex:1;padding:12px 8px;display:flex;flex-direction:column;gap:14px;overflow-y:auto}
+.side-grp{display:flex;flex-direction:column;gap:2px}
+.side-grp h3{margin:0 0 4px;padding:0 10px;font-size:11px;font-weight:600;color:#8fa0bc;font-family:"Barlow Condensed",sans-serif;text-transform:uppercase;letter-spacing:.09em}
+.side a{display:flex;align-items:center;gap:10px;padding:0 10px;height:34px;color:#cbd5e4;text-decoration:none;font-size:13.5px;border-radius:var(--r-control);position:relative;transition:background .1s}
+.side a:hover{background:rgb(255 255 255/.07);color:#fff}
+.side a[aria-current="page"]{background:var(--navy-800);color:#fff;font-weight:500}
+.side a[aria-current="page"]::before{content:"";position:absolute;left:-8px;top:50%;transform:translateY(-50%);width:3px;height:20px;border-radius:0 3px 3px 0;background:var(--accent)}
+.side-foot{padding:8px 8px 0;margin-top:auto;border-top:1px solid rgb(255 255 255/.10)}
+.side-user{display:flex;align-items:center;gap:9px;padding:8px 10px 2px}
+.side-user .av{width:28px;height:28px;border-radius:999px;background:var(--navy-700);display:grid;place-items:center;color:#fff;font-size:11px;font-weight:600;flex:none}
+.side-user b{display:block;color:#fff;font-size:12.5px;font-weight:500}
+.side-user small{display:block;color:#8fa0bc;font-size:11px}
+.main{display:flex;flex-direction:column;min-width:0}
+.ctx{height:56px;flex:none;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:20px;padding:0 24px;overflow-x:auto}
+.ctx .field{display:flex;align-items:center;gap:7px;white-space:nowrap}
+.ctx label{font-size:11px;color:var(--ink-subtle);font-family:"Barlow Condensed",sans-serif;text-transform:uppercase;letter-spacing:.08em;font-weight:600}
+.sel{font:inherit;font-family:"Barlow",sans-serif;font-size:13.5px;color:var(--ink);font-weight:500;background:var(--surface);border:1px solid var(--border-control);border-radius:var(--r-control);height:32px;padding:0 26px 0 9px;cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%235d6b80' stroke-width='2.2' stroke-linecap='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 7px center}
+.sel:hover{border-color:var(--navy-400)}
+.head{padding:18px 24px 14px;flex:none}
+.crumb{display:flex;align-items:center;gap:5px;font-size:12.5px;color:var(--ink-subtle);margin-bottom:5px}
+.crumb a{color:var(--link);text-decoration:none}.crumb a:hover{text-decoration:underline}
+.head-row{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.head h1{margin:0;font-size:20px;line-height:26px;font-weight:600;letter-spacing:-.015em;text-wrap:balance}
+.head p{margin:2px 0 0;font-size:13px;color:var(--ink-muted)}
+.head-actions{display:flex;gap:8px;flex-wrap:wrap}
+.body{padding:0 24px 28px;display:flex;flex-direction:column;gap:16px}
+
+/* Botões */
+.btn{font:inherit;font-family:"Barlow",sans-serif;font-weight:600;font-size:13.5px;height:40px;padding:0 16px;border-radius:var(--r-control);border:1px solid transparent;display:inline-flex;align-items:center;gap:7px;cursor:pointer;white-space:nowrap;transition:background .1s}
+.btn-primary{background:var(--action);color:#fff}.btn-primary:hover{background:var(--navy-700)}
+.btn-accent{background:var(--accent);color:var(--navy-800)}.btn-accent:hover{background:var(--gold-400)}
+.btn-secondary{background:var(--surface);color:var(--slate-800);border-color:var(--border-control)}.btn-secondary:hover{background:var(--navy-50)}
+.btn-ghost{background:transparent;color:var(--link)}.btn-ghost:hover{background:var(--navy-50)}
+
+/* Card / filtros */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-card);overflow:hidden}
+.card-h{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;border-bottom:1px solid var(--rule)}
+.card-h h2{margin:0;font-size:15px;font-weight:600}
+.filters{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-card)}
+.search{position:relative;flex:1 1 200px;max-width:300px}
+.search svg{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--ink-subtle)}
+.search input{font:inherit;font-family:"Barlow",sans-serif;font-size:13.5px;width:100%;height:36px;padding:0 10px 0 30px;color:var(--ink);border:1px solid var(--border-control);border-radius:var(--r-control);background:var(--surface)}
+.search input::placeholder{color:var(--ink-subtle)}
+.chk{display:flex;align-items:center;gap:7px;font-size:13.5px;color:var(--ink-muted);cursor:pointer;height:36px}
+.chk input{width:16px;height:16px;accent-color:var(--action)}
+.seg{display:inline-flex;background:var(--sunken);border-radius:var(--r-control);padding:2px;gap:2px}
+.seg button{font:inherit;font-family:"Barlow",sans-serif;font-size:12.5px;font-weight:500;color:var(--ink-muted);background:transparent;border:0;border-radius:4px;padding:5px 12px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);font-weight:600;box-shadow:0 1px 2px rgb(14 23 39/.10)}
+.spacer{flex:1}
+
+/* Badges */
+.badge{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:500;padding:2px 8px;border-radius:var(--r-control);white-space:nowrap;background:var(--bg);color:var(--fg)}
+.badge .dot{width:6px;height:6px;border-radius:999px;background:var(--fg);opacity:.75;flex:none}
+.s-prev{--fg:var(--st-prev-fg);--bg:var(--st-prev-bg);--rail:transparent}
+.s-rp{--fg:var(--st-rp-fg);--bg:var(--st-rp-bg);--rail:var(--st-rp-rail)}
+.s-ra{--fg:var(--st-ra-fg);--bg:var(--st-ra-bg);--rail:var(--st-ra-rail)}
+.s-ap{--fg:var(--st-ap-fg);--bg:var(--st-ap-bg);--rail:var(--st-ap-rail)}
+.s-aa{--fg:var(--st-aa-fg);--bg:var(--st-aa-bg);--rail:var(--st-aa-rail)}
+.s-ok{--fg:var(--st-ok-fg);--bg:var(--st-ok-bg);--rail:var(--st-ok-rail)}
+.s-off{--fg:var(--st-off-fg);--bg:var(--st-off-bg);--rail:transparent}
+/* planStatus — contorno, peso menor: eixo diferente de StatusEvento */
+.p-badge{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:500;padding:1px 7px;border-radius:999px;border:1px solid var(--bd);color:var(--fg);background:transparent;white-space:nowrap}
+.p-rascunho{--fg:#3d4a5c;--bd:#c8d0da}
+.p-ativo{--fg:#35507f;--bd:#b6c4dc}
+.p-concluido{--fg:#166534;--bd:#a9d3ba}
+.p-arquivado{--fg:#5d6b80;--bd:#d3dae2}
+
+/* KPI */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-card);padding:13px 15px;text-decoration:none;color:inherit;display:block;position:relative;overflow:hidden;transition:border-color .1s,background .1s}
+.kpi::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--rail)}
+.kpi:hover{border-color:var(--navy-400);background:var(--navy-50)}
+.kpi .v{font-size:26px;line-height:30px;font-weight:500}
+.kpi .l{display:flex;align-items:center;gap:6px;margin-top:3px;font-size:11px;color:var(--ink-muted);font-family:"Barlow Condensed",sans-serif;text-transform:uppercase;letter-spacing:.07em;font-weight:600}
+.kpi .dot{width:7px;height:7px;border-radius:999px;background:var(--rail);flex:none}
+
+/* Acordeão */
+.acc-cli{width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;background:transparent;border:0;border-left:3px solid var(--action);cursor:pointer;text-align:left;font:inherit;font-family:"Barlow",sans-serif;transition:background .1s}
+.acc-cli:hover{background:var(--navy-50)}
+.acc-cli .nm{font-size:12.5px;font-weight:600;color:var(--ink);font-family:"Barlow Condensed",sans-serif;text-transform:uppercase;letter-spacing:.06em}
+.acc-cli .ct{font-size:12px;color:var(--ink-subtle);font-weight:400}
+.acc-safra{width:100%;display:flex;align-items:center;justify-content:space-between;padding:6px 16px;background:var(--sunken);border:0;border-top:1px solid var(--rule);cursor:pointer;text-align:left;font:inherit;font-family:"Barlow Condensed",sans-serif;text-transform:uppercase;letter-spacing:.07em;font-size:11px;font-weight:600;color:var(--ink-muted)}
+.acc-safra:hover{background:#e3e9f1}
+.row{display:flex;align-items:center;gap:12px;padding:0 16px;height:var(--row-h);border-top:1px solid var(--rule);position:relative;transition:background .1s,height .16s ease-out}
+.row:hover{background:var(--navy-50)}
+.row::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--rail,transparent)}
+.row .grow{flex:1;min-width:0}
+.row .nm{font-size:13.5px;font-weight:500;color:var(--ink);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .sub{font-size:11.5px;color:var(--ink-subtle);display:block;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+:root[data-density="compact"] .row .sub{display:none}
+.meta{text-align:right;font-size:12px;color:var(--ink-subtle);white-space:nowrap}
+.acts{display:flex;gap:3px;flex:none}
+.act{font:inherit;font-family:"Barlow",sans-serif;font-size:12.5px;font-weight:500;display:inline-flex;align-items:center;gap:5px;height:32px;min-width:32px;padding:0 9px;border:1px solid transparent;border-radius:var(--r-control);background:transparent;color:var(--ink-muted);cursor:pointer;transition:background .1s,color .1s,border-color .1s}
+.act:hover{background:var(--surface);color:var(--action);border-color:var(--border)}
+.act.danger:hover{background:var(--st-aa-bg);color:var(--st-aa-fg);border-color:#f3c9c9}
+
+/* Tabela */
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:620px}
+thead th{background:var(--sunken);font-family:"Barlow Condensed",sans-serif;text-transform:uppercase;letter-spacing:.07em;font-size:11.5px;font-weight:600;color:var(--ink-muted);text-align:left;padding:8px 14px;border-bottom:1px solid var(--border);white-space:nowrap}
+thead th.num{text-align:right}
+tbody tr{border-bottom:1px solid var(--rule)}
+tbody tr:last-child{border-bottom:0}
+tbody tr:hover{background:var(--navy-50)}
+tbody td{padding:0 14px;height:var(--row-h);font-size:13.5px;vertical-align:middle}
+td.num{text-align:right}
+.chip{display:inline-flex;font-size:11.5px;font-weight:500;padding:1px 8px;border-radius:999px;background:var(--sunken);color:var(--ink-muted)}
+.chip.herb{background:#fdf4d6;color:#7a5b06}.chip.fung{background:#f3eefc;color:#5b21b6}
+.chip.inse{background:#fce9e9;color:#991b1b}.chip.adju{background:#e4f4f2;color:#115e59}
+
+/* Kanban */
+.boards{display:flex;flex-direction:column;gap:16px}
+.board-h{display:flex;align-items:baseline;gap:8px;margin-bottom:8px}
+.board-h h3{margin:0;font-size:14px;font-weight:600}
+.board-h span{font-size:12px;color:var(--ink-subtle)}
+.cols{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.col{background:var(--surface);border:1px solid var(--border);border-top:3px solid var(--rail,var(--slate-300));border-radius:var(--r-card);overflow:hidden;display:flex;flex-direction:column}
+.col-h{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;border-bottom:1px solid var(--rule)}
+.col-h b{font-size:11.5px;font-weight:600;font-family:"Barlow Condensed",sans-serif;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-muted)}
+.col-h .n{font-size:12px;font-weight:600;padding:1px 8px;border-radius:999px;background:var(--bg);color:var(--fg)}
+.col-b{padding:8px;display:flex;flex-direction:column;gap:6px;min-height:64px}
+.ev{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--rail);border-radius:var(--r-control);padding:8px 10px;cursor:pointer;transition:border-color .1s,background .1s}
+.ev:hover{background:var(--navy-50);border-color:var(--navy-400)}
+.ev b{display:block;font-size:12.5px;font-weight:500;color:var(--ink)}
+.ev small{display:block;font-size:11.5px;color:var(--ink-subtle);margin-top:1px}
+.col-empty{padding:14px 10px;text-align:center;font-size:12px;color:var(--ink-subtle)}
+
+/* Agenda / panorama */
+.split{display:grid;grid-template-columns:300px 1fr;gap:16px}
+.mini{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;padding:12px}
+.mini div{aspect-ratio:1;display:grid;place-items:center;font-size:11.5px;border-radius:4px;color:var(--ink-muted);font-family:"IBM Plex Mono",monospace}
+.mini .dow{color:var(--ink-subtle);font-family:"Barlow Condensed",sans-serif;text-transform:uppercase;font-size:10px;aspect-ratio:auto}
+.mini .has{background:var(--st-aa-bg);color:var(--st-aa-fg);font-weight:500}
+.mini .today{background:var(--action);color:#fff;font-weight:600}
+.pan-row{display:flex;align-items:center;gap:10px;padding:0 14px;height:40px;border-top:1px solid var(--rule);font-size:13px}
+.pan-row:hover{background:var(--navy-50)}
+.pan-bar{flex:1;height:6px;border-radius:999px;background:var(--sunken);overflow:hidden;display:flex}
+.pan-bar i{display:block;height:100%}
+
+/* Estados */
+.state{padding:44px 24px;text-align:center;max-width:430px;margin:0 auto}
+.state .ic{width:44px;height:44px;border-radius:var(--r-card);display:grid;place-items:center;margin:0 auto 14px;background:var(--sunken);color:var(--slate-300)}
+.state h3{margin:0 0 6px;font-size:16px;font-weight:600;text-wrap:balance}
+.state p{margin:0 0 16px;font-size:13.5px;line-height:19px;color:var(--ink-muted);text-wrap:pretty}
+
+.tabs{display:flex;gap:6px}
+.tab{font:inherit;font-family:"Barlow",sans-serif;font-size:13px;font-weight:500;padding:6px 14px;border-radius:999px;border:1px solid var(--border);background:var(--surface);color:var(--ink-muted);cursor:pointer}
+.tab[aria-pressed="true"]{background:var(--action);color:#fff;border-color:var(--action);font-weight:600}
+
+.screen{display:none}.screen.on{display:block}
+
+@media (max-width:1023px){
+  .app{grid-template-columns:64px 1fr}
+  .side-brand span,.side-grp h3,.side a span,.side-user div{display:none}
+  .side-brand,.side a,.side-user{justify-content:center;padding-left:0;padding-right:0}
+  .kpis{grid-template-columns:repeat(2,1fr)}
+  .split{grid-template-columns:1fr}
+  .cols{grid-template-columns:1fr}
+  [data-p="wide"]{display:none}
+}
+@media (max-width:639px){
+  .app{grid-template-columns:1fr}.side{display:none}
+  .ctx{height:auto;padding:10px 16px;flex-wrap:wrap;gap:10px 14px}
+  .head,.body{padding-left:16px;padding-right:16px}
+  .meta{display:none}.act span{display:none}.act{padding:0;width:36px;justify-content:center}
+  [data-p="lg"]{display:none}
+  :root{--row-h:48px!important}
+}
+</style>
+
+<div class="harness">
+  <b>PROTÓTIPO</b>
+  <span style="opacity:.65">réplica das telas reais com o redesign aplicado</span>
+  <div class="sep"></div>
+  <button data-screen="home" aria-pressed="true">Início</button>
+  <button data-screen="plan" aria-pressed="false">Planejamento</button>
+  <button data-screen="rec" aria-pressed="false">Recomendação</button>
+  <button data-screen="cal" aria-pressed="false">Calendário</button>
+  <button data-screen="cad" aria-pressed="false">Produtos</button>
+  <div class="sep"></div>
+  <span style="opacity:.65">Densidade:</span>
+  <button data-density="comfortable" aria-pressed="true">Completo</button>
+  <button data-density="compact" aria-pressed="false">Compacto</button>
+</div>
+
+<div class="app">
+  <aside class="side">
+    <div class="side-brand"><div class="mark">A</div><span>AgroPlan</span></div>
+    <nav>
+      <div class="side-grp">
+        <a href="#" data-nav="home"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span>Início</span></a>
+        <a href="#"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2 2h2l2.7 12.4a2 2 0 0 0 2 1.6h9.8a2 2 0 0 0 1.9-1.6L22 7H5"/></svg><span>Estoque</span></a>
+      </div>
+      <div class="side-grp"><h3>Defensivos</h3>
+        <a href="#" data-nav="plan"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.5 19 2c1 2 2 4.2 2 8 0 5.5-4.8 10-10 10"/><path d="M2 21c0-3 1.9-5.4 5.1-6"/></svg><span>Planejar Manejo</span></a>
+        <a href="#" data-nav="rec"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect width="8" height="4" x="8" y="2" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M9 14h6M9 18h4"/></svg><span>Recomendação</span></a>
+        <a href="#" data-nav="cal"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18M8 2v4M16 2v4"/></svg><span>Calendário</span></a>
+      </div>
+      <div class="side-grp"><h3>Relatórios</h3>
+        <a href="#"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="6"/><rect x="12" y="8" width="3" height="10"/><rect x="17" y="5" width="3" height="13"/></svg><span>Geral Fazendas</span></a>
+        <a href="#"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"/><path d="M14 2v5h5M9 13h6"/></svg><span>Manejo por Talhão</span></a>
+      </div>
+      <div class="side-grp"><h3>Cadastros</h3>
+        <a href="#"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg><span>Clientes</span></a>
+        <a href="#"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M2 22V7l7-5 7 5v15"/><path d="M16 11h4a2 2 0 0 1 2 2v9"/></svg><span>Fazendas</span></a>
+        <a href="#" data-nav="cad"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M21 8a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5M12 22V12"/></svg><span>Produtos</span></a>
+      </div>
+    </nav>
+    <div class="side-foot">
+      <a href="#"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-1.8-.3 1.6 1.6 0 0 0-1 1.5V21a2 2 0 0 1-4 0v-.1A1.6 1.6 0 0 0 9 19.4a1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0 .3-1.8 1.6 1.6 0 0 0-1.5-1H3a2 2 0 0 1 0-4h.1A1.6 1.6 0 0 0 4.6 9a1.6 1.6 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A1.6 1.6 0 0 0 9 4.6a1.6 1.6 0 0 0 1-1.5V3a2 2 0 0 1 4 0v.1a1.6 1.6 0 0 0 1 1.5 1.6 1.6 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8V9a1.6 1.6 0 0 0 1.5 1H21a2 2 0 0 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1"/></svg><span>Configurações</span></a>
+      <div class="side-user"><div class="av">TB</div><div><b>Tiago Barbosa</b><small>Terram Soluções</small></div></div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="ctx">
+      <div class="field"><label for="k1">Cliente</label><select class="sel" id="k1"><option>Todos os clientes</option><option>Agropecuária Vale Verde</option><option>Grupo Rio Formoso</option></select></div>
+      <div class="field"><label for="k2">Fazenda</label><select class="sel" id="k2"><option>Todas as fazendas</option><option>Cascata</option><option>Retirinho</option></select></div>
+      <div class="field"><label for="k3">Safra</label><select class="sel" id="k3"><option selected>2026/27</option><option>2025/26 e 2026/27</option><option>Todas as safras</option></select></div>
+    </div>
+    <div id="stage"></div>
+  </div>
+</div>
+
+<script>
+const I = {
+  edit:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.1 2.1 0 0 1 3 3L12 15l-4 1 1-4Z"/></svg>',
+  copy:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>',
+  arch:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect width="20" height="5" x="2" y="3" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8M10 12h4"/></svg>',
+  plus:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M12 5v14"/></svg>',
+  down:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>',
+  right:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>',
+  sep:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" style="opacity:.5"><path d="m9 18 6-6-6-6"/></svg>',
+  print:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>',
+  srch:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>'
+};
+const head = (crumb,t,sub,acts) => `<div class="head">
+  <div class="crumb">${crumb.map((c,i)=>i<crumb.length-1?`<a href="#">${c}</a>${I.sep}`:`<span aria-current="page">${c}</span>`).join("")}</div>
+  <div class="head-row"><div><h1>${t}</h1><p>${sub}</p></div><div class="head-actions">${acts}</div></div></div>`;
+
+/* ══ INÍCIO ══ */
+const home = () => head(["Início"],"Bom dia, Tiago","Quinta-feira, 28 de agosto de 2026 · 4 clientes com pendência",
+  `<button class="btn btn-primary">${I.plus}Novo planejamento</button>`) + `
+<div class="body">
+  <div class="kpis">
+    <a class="kpi s-aa" href="#"><div class="v mono">3</div><div class="l"><span class="dot"></span>Aplicação atrasada</div></a>
+    <a class="kpi s-ra" href="#"><div class="v mono">5</div><div class="l"><span class="dot"></span>Recomendação atrasada</div></a>
+    <a class="kpi s-rp" href="#"><div class="v mono">11</div><div class="l"><span class="dot"></span>Recomendação pendente</div></a>
+    <a class="kpi s-ap" href="#"><div class="v mono">8</div><div class="l"><span class="dot"></span>Aplicação pendente</div></a>
+  </div>
+  <div class="card">
+    <div class="card-h"><h2>Carga por cliente</h2><button class="btn btn-ghost" style="height:32px;padding:0 10px">Abrir calendário</button></div>
+    ${[["Agropecuária Vale Verde",4,6,3],["Grupo Rio Formoso",2,3,9],["Fazenda Santa Helena",1,1,5],["Sementes Ipê",0,2,4]].map(([n,aa,rp,ok])=>{
+      const t=aa+rp+ok; return `<div class="pan-row"><span style="width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${n}</span>
+      <div class="pan-bar"><i style="width:${aa/t*100}%;background:var(--st-aa-rail)"></i><i style="width:${rp/t*100}%;background:var(--st-rp-rail)"></i><i style="width:${ok/t*100}%;background:var(--st-ok-rail)"></i></div>
+      <span class="mono" style="width:70px;text-align:right;color:var(--ink-muted)">${aa+rp} aberto${aa+rp===1?"":"s"}</span></div>`}).join("")}
+  </div>
+  <div class="card">
+    <div class="card-h"><h2>Planejamentos recentes</h2><button class="btn btn-ghost" style="height:32px;padding:0 10px">Ver todos</button></div>
+    ${[["Soja precoce — Cascata","Agrop. Vale Verde · 2026/27","ativo","hoje"],["Milho safrinha — Retirinho","Agrop. Vale Verde · 2026/27","ativo","ontem"],["Algodão — Olhos d'Água","Grupo Rio Formoso · 2026/27","rascunho","há 2 dias"],["Soja — Santa Maria","Fazenda Santa Helena · 2026/27","concluido","há 12 dias"]].map(([n,s,st,d])=>
+      `<div class="row"><div class="grow"><span class="nm">${n}</span><span class="sub">${s}</span></div>
+      <span class="p-badge p-${st}">${{rascunho:"Rascunho",ativo:"Ativo",concluido:"Concluído",arquivado:"Arquivado"}[st]}</span>
+      <span class="meta">${d}</span></div>`).join("")}
+  </div>
+</div>`;
+
+/* ══ PLANEJAMENTO ══ */
+const PL = [
+  {cli:"Agropecuária Vale Verde",tot:5,safras:[{s:"2026/27",p:[
+    {n:"Soja precoce — Cascata",f:"Cascata · Soja",st:"ativo",d:"há 2 dias",u:"tiago"},
+    {n:"Milho safrinha — Retirinho",f:"Retirinho · Milho",st:"ativo",d:"há 4 dias",u:"tiago"},
+    {n:"Braquiária — Padrão",f:"Padrão · Braquiária",st:"rascunho",d:"há 6 dias",u:"marina"}]},
+    {s:"2025/26",p:[{n:"Soja — Cascata",f:"Cascata · Soja",st:"concluido",d:"há 4 meses",u:"tiago"},
+    {n:"Algodão — Itaúba",f:"Itaúba · Algodão",st:"arquivado",d:"há 7 meses",u:"tiago"}]}]},
+  {cli:"Grupo Rio Formoso",tot:3,safras:[{s:"2026/27",p:[
+    {n:"Algodão — Olhos d'Água",f:"Olhos d'Água · Algodão",st:"rascunho",d:"ontem",u:"marina"},
+    {n:"Soja tardia — Ipê",f:"Ipê · Soja",st:"ativo",d:"hoje",u:"tiago"}]}]}
+];
+const PLBL={rascunho:"Rascunho",ativo:"Ativo",concluido:"Concluído",arquivado:"Arquivado"};
+const plan = () => head(["Defensivos","Planejar Manejo"],"Planejar Manejo","8 planejamentos · 2 clientes · safra 2026/27",
+  `<button class="btn btn-primary">${I.plus}Novo planejamento</button>`) + `
+<div class="body">
+  <div class="filters">
+    <select class="sel" aria-label="Cultura"><option>Todas as culturas</option><option>Soja</option><option>Milho</option><option>Algodão</option></select>
+    <select class="sel" aria-label="Status"><option>Todos os status</option><option>Rascunho</option><option>Ativo</option><option>Concluído</option></select>
+    <label class="chk"><input type="checkbox"> Incluir arquivados</label>
+    <div class="spacer"></div>
+    <div class="seg" role="group" aria-label="Densidade">
+      <button data-density="comfortable" aria-pressed="true">Completo</button>
+      <button data-density="compact" aria-pressed="false">Compacto</button></div>
+  </div>
+  ${PL.map(g=>`<div class="card">
+    <button class="acc-cli"><span><span class="nm">${g.cli}</span> <span class="ct">${g.tot} planejamentos</span></span>${I.down}</button>
+    ${g.safras.map(sg=>`<button class="acc-safra"><span>Safra ${sg.s} · ${sg.p.length} plano${sg.p.length===1?"":"s"}</span>${I.down}</button>
+      ${sg.p.map(p=>`<div class="row"><div class="grow"><span class="nm">${p.n}</span><span class="sub">${p.f}</span></div>
+        <span class="p-badge p-${p.st}">${PLBL[p.st]}</span>
+        <span class="meta">${p.d}<br><span style="font-size:11px;opacity:.8">${p.u}</span></span>
+        <div class="acts">
+          <button class="act">${I.edit}<span>Editar</span></button>
+          <button class="act">${I.copy}<span>Modelo</span></button>
+          <button class="act danger">${I.arch}<span>Arquivar</span></button>
+        </div></div>`).join("")}`).join("")}
+  </div>`).join("")}
+</div>`;
+
+/* ══ RECOMENDAÇÃO ══ */
+const REC = [
+  {cli:"Agropecuária Vale Verde",tot:4,f:[
+    {faz:"Cascata",aps:[{n:"AP-22",t:7,ap:0,st:"aberta",d:"25/03"},{n:"AP-24",t:7,ap:3,st:"parcial",d:"26/03"}]},
+    {faz:"Retirinho",aps:[{n:"AP-19",t:5,ap:0,st:"atrasada",d:"18/03"},{n:"AP-25",t:4,ap:4,st:"aplicada",d:"27/03"}]}]},
+  {cli:"Grupo Rio Formoso",tot:2,f:[
+    {faz:"Olhos d'Água",aps:[{n:"AP-31",t:12,ap:0,st:"aberta",d:"29/03"},{n:"AP-28",t:9,ap:2,st:"atrasada",d:"20/03"}]}]}
+];
+const AP={aberta:["Em aberto","s-ap"],atrasada:["Atrasada","s-aa"],parcial:["Parcial","s-rp"],aplicada:["Aplicada","s-ok"]};
+const rec = () => head(["Defensivos","Recomendação"],"Recomendações","6 recomendações em aberto · 2 clientes",
+  `<button class="btn btn-accent">${I.plus}Nova recomendação</button>`) + `
+<div class="body">
+  <div class="filters">
+    <div class="tabs"><button class="tab" aria-pressed="true">Em aberto</button><button class="tab" aria-pressed="false">Finalizadas</button></div>
+    <div class="search">${I.srch}<input type="search" placeholder="Nº da AP…" aria-label="Buscar por número"></div>
+    <div class="spacer"></div>
+    <div class="seg" role="group" aria-label="Densidade">
+      <button data-density="comfortable" aria-pressed="true">Completo</button>
+      <button data-density="compact" aria-pressed="false">Compacto</button></div>
+  </div>
+  ${REC.map(g=>`<div class="card">
+    <button class="acc-cli"><span><span class="nm">${g.cli}</span> <span class="ct">${g.tot} em aberto</span></span>${I.down}</button>
+    ${g.f.map(fz=>`<button class="acc-safra"><span>${fz.faz} · ${fz.aps.length} AP${fz.aps.length===1?"":"s"}</span>${I.down}</button>
+      ${fz.aps.map(a=>`<div class="row ${AP[a.st][1]}"><div class="grow"><span class="nm mono">${a.n}</span><span class="sub">${a.t} talhões · previsto ${a.d}</span></div>
+        <span class="mono" style="font-size:12.5px;color:var(--ink-muted);width:44px;text-align:right">${a.ap}/${a.t}</span>
+        <span class="badge ${AP[a.st][1]}"><span class="dot"></span>${AP[a.st][0]}</span>
+        <div class="acts">
+          <button class="act">${I.edit}<span>Abrir</span></button>
+          <button class="act">${I.print}<span>Imprimir</span></button>
+        </div></div>`).join("")}`).join("")}
+  </div>`).join("")}
+</div>`;
+
+/* ══ CALENDÁRIO ══ */
+const kb = (tit,sub,cols) => `<div><div class="board-h"><h3>${tit}</h3><span>${sub}</span></div>
+<div class="cols">${cols.map(c=>`<div class="col ${c.s}" style="--rail:var(--st-${c.k}-rail,var(--slate-300))">
+  <div class="col-h"><b>${c.t}</b><span class="n ${c.s}">${c.e.length}</span></div>
+  <div class="col-b">${c.e.length?c.e.map(e=>`<div class="ev ${c.s}"><b>${e[0]}</b><small>${e[1]}</small></div>`).join(""):`<div class="col-empty">Nada aqui</div>`}</div>
+</div>`).join("")}</div></div>`;
+const cal = () => head(["Defensivos","Calendário"],"Calendário de Aplicações","Visão geral · todas as fazendas",
+  `<button class="btn btn-secondary">Configurar atividades</button><button class="btn btn-primary">${I.plus}Registrar AP</button>`) + `
+<div class="body">
+  <div class="filters">
+    <div class="seg" role="group" aria-label="Visão">
+      <button aria-pressed="true">Visão geral</button><button aria-pressed="false">Por cliente</button></div>
+    <div class="spacer"></div>
+    <div class="seg" role="group" aria-label="Densidade">
+      <button data-density="comfortable" aria-pressed="true">Completo</button>
+      <button data-density="compact" aria-pressed="false">Compacto</button></div>
+  </div>
+  <div class="split">
+    <div class="card"><div class="card-h"><h2>Agosto 2026</h2></div>
+      <div class="mini">${["S","T","Q","Q","S","S","D"].map(d=>`<div class="dow">${d}</div>`).join("")}
+      ${Array.from({length:31},(_,i)=>{const d=i+1;const cls=d===28?"today":[12,18,20,25,26].includes(d)?"has":"";return `<div class="${cls}">${d}</div>`}).join("")}</div></div>
+    <div class="card"><div class="card-h"><h2>Carga por cliente</h2></div>
+      ${[["Agropecuária Vale Verde",4,6,3],["Grupo Rio Formoso",2,3,9],["Fazenda Santa Helena",1,1,5]].map(([n,aa,rp,ok])=>{
+        const t=aa+rp+ok;return `<div class="pan-row"><span style="width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${n}</span>
+        <div class="pan-bar"><i style="width:${aa/t*100}%;background:var(--st-aa-rail)"></i><i style="width:${rp/t*100}%;background:var(--st-rp-rail)"></i><i style="width:${ok/t*100}%;background:var(--st-ok-rail)"></i></div>
+        <span class="mono" style="width:34px;text-align:right;color:var(--ink-muted)">${t}</span></div>`}).join("")}</div>
+  </div>
+  <div class="boards">
+    ${kb("Recomendações","criar / enviar a AP",[
+      {t:"Atrasadas",k:"ra",s:"s-ra",e:[["T-14 · Cascata","Fungicida · venceu há 6 dias"],["T-03 · Retirinho","Herbicida · venceu há 2 dias"]]},
+      {t:"Pendentes",k:"rp",s:"s-rp",e:[["T-08 · Cascata","Inseticida · até 30/08"],["T-11 · Ipê","Fungicida · até 02/09"],["T-22 · Olhos d'Água","Herbicida · até 03/09"]]},
+      {t:"Previstas",k:"prev",s:"s-prev",e:[["T-05 · Santa Maria","Fungicida · 12/09"]]}])}
+    ${kb("Aplicações","executar em campo",[
+      {t:"Atrasadas",k:"aa",s:"s-aa",e:[["AP-19 · Retirinho","5 talhões · previsto 18/03"]]},
+      {t:"Aguardando",k:"ap",s:"s-ap",e:[["AP-22 · Cascata","7 talhões · previsto 25/03"],["AP-31 · Olhos d'Água","12 talhões · previsto 29/03"]]},
+      {t:"Concluídas",k:"ok",s:"s-ok",e:[["AP-25 · Retirinho","4 talhões · aplicado 27/03"]]}])}
+  </div>
+</div>`;
+
+/* ══ PRODUTOS (cadastro) ══ */
+const PROD=[["Fighter 480 SC","inse","Bifentrina","0,05 L/ha","FMC"],["Abacus HC","fung","Piraclostrobina + Epoxiconazol","0,30 L/ha","BASF"],
+["Metomil 900","inse","Metomil","1,50 Kg/ha","Adama"],["Match EC","inse","Lufenurom","0,40 L/ha","Syngenta"],
+["Orkestra SC","fung","Fluxapiroxade + Piraclostrobina","0,30 L/ha","BASF"],["Select One Pack","herb","Cletodim","0,45 L/ha","Arysta"],
+["Nimbus","adju","Óleo mineral","0,50 L/ha","Syngenta"]];
+const TL={inse:"Inseticida",fung:"Fungicida",herb:"Herbicida",adju:"Adjuvante"};
+const cad = () => head(["Cadastros","Produtos"],"Produtos","catálogo global sincronizado com Agrofit · 1.284 produtos",
+  `<button class="btn btn-primary">${I.plus}Novo produto</button>`) + `
+<div class="body">
+  <div class="filters">
+    <div class="tabs"><button class="tab" aria-pressed="true">Global</button><button class="tab" aria-pressed="false">Do cliente</button></div>
+    <div class="search">${I.srch}<input type="search" placeholder="Buscar produto…" aria-label="Buscar produto"></div>
+    <select class="sel" aria-label="Tipo"><option>Todos os tipos</option><option>Inseticida</option><option>Fungicida</option><option>Herbicida</option></select>
+    <label class="chk"><input type="checkbox"> Mostrar inativos</label>
+    <div class="spacer"></div>
+    <div class="seg" role="group" aria-label="Densidade">
+      <button data-density="comfortable" aria-pressed="true">Completo</button>
+      <button data-density="compact" aria-pressed="false">Compacto</button></div>
+  </div>
+  <div class="card"><div class="tw"><table>
+    <thead><tr><th>Nome comercial</th><th>Tipo</th><th data-p="wide">Ingrediente ativo</th>
+      <th class="num" data-p="lg">Dose</th><th data-p="wide">Fabricante</th><th style="text-align:right">Ações</th></tr></thead>
+    <tbody>${PROD.map(([n,t,ia,d,fb])=>`<tr>
+      <td style="font-weight:500">${n}</td>
+      <td><span class="chip ${t}">${TL[t]}</span></td>
+      <td data-p="wide" style="color:var(--ink-muted)">${ia}</td>
+      <td class="num mono" data-p="lg">${d}</td>
+      <td data-p="wide" style="color:var(--ink-muted)">${fb}</td>
+      <td><div class="acts" style="justify-content:flex-end">
+        <button class="act">${I.edit}<span>Editar</span></button>
+        <button class="act danger">${I.arch}<span>Inativar</span></button></div></td>
+    </tr>`).join("")}</tbody></table></div></div>
+</div>`;
+
+const S={home,plan,rec,cal,cad};
+const NAVKEY={home:"home",plan:"plan",rec:"rec",cal:"cal",cad:"cad"};
+const stage=document.getElementById("stage");
+function show(k){
+  stage.innerHTML=S[k]();
+  document.querySelectorAll("[data-screen]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.screen===k)));
+  document.querySelectorAll(".side a").forEach(a=>a.removeAttribute("aria-current"));
+  const n=document.querySelector(`.side a[data-nav="${NAVKEY[k]}"]`); if(n)n.setAttribute("aria-current","page");
+  stage.querySelectorAll("button[data-density]").forEach(b=>b.addEventListener("click",()=>dens(b.dataset.density)));
+  stage.querySelectorAll(".seg button:not([data-density]), .tab").forEach(b=>b.addEventListener("click",()=>{
+    b.parentElement.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed","false"));
+    b.setAttribute("aria-pressed","true");}));
+  dens(document.documentElement.getAttribute("data-density")||"comfortable");
+}
+function dens(d){
+  document.documentElement.setAttribute("data-density",d);
+  document.querySelectorAll("button[data-density]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.density===d)));
+}
+document.querySelectorAll("[data-screen]").forEach(b=>b.addEventListener("click",()=>show(b.dataset.screen)));
+document.querySelectorAll(".side a[data-nav]").forEach(a=>a.addEventListener("click",e=>{e.preventDefault();show(a.dataset.nav)}));
+show("home");
+</script>

@@ -1,0 +1,559 @@
+<title>AgroPlan Planejamento</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+
+<style>
+/* ═══════════════════════════════════════════════════════════════
+   TOKENS — docs/redesign/05-design-system.md §1
+   Tema único claro por decisão (05 §45: modo escuro fora de escopo).
+   Todas as cores pintadas explicitamente.
+   ═══════════════════════════════════════════════════════════════ */
+:root{
+  --navy-950:#0e1727; --navy-900:#131e34; --navy-800:#1e2e4f; --navy-700:#2a3f6a;
+  --navy-600:#35507f; --navy-500:#456497; --navy-400:#6480ad; --navy-100:#e1e7f0; --navy-50:#f2f5f9;
+  --gold-700:#8a6414; --gold-500:#daa52d; --gold-400:#e4ba5c; --gold-100:#fbf3df;
+  --slate-900:#0f1620; --slate-800:#1a2331; --slate-700:#2e3949; --slate-600:#465366;
+  --slate-500:#5d6b80; --slate-400:#8b97a8; --slate-300:#bec7d3; --slate-200:#dce2ea;
+  --slate-100:#eaeef3; --slate-50:#f3f5f9;
+
+  --st-prev-fg:#3d4a5c;    --st-prev-bg:#edf0f4;
+  --st-rp-fg:#5b21b6;      --st-rp-bg:#f3eefc;   --st-rp-rail:#7c3aed;
+  --st-ra-fg:#9d174d;      --st-ra-bg:#fce9f1;   --st-ra-rail:#db2777;
+  --st-ap-fg:#115e59;      --st-ap-bg:#e4f4f2;   --st-ap-rail:#0d9488;
+  --st-aa-fg:#991b1b;      --st-aa-bg:#fce9e9;   --st-aa-rail:#dc2626;
+  --st-ok-fg:#166534;      --st-ok-bg:#e7f4eb;   --st-ok-rail:#16a34a;
+  --st-off-fg:#5d6b80;     --st-off-bg:#f1f3f6;
+
+  --canvas:var(--slate-50); --surface:#ffffff; --sunken:var(--slate-100);
+  --chrome:var(--navy-900); --ink:var(--slate-800); --ink-muted:var(--slate-600);
+  --ink-subtle:var(--slate-500); --action:var(--navy-800); --action-hover:var(--navy-700);
+  --link:var(--navy-600); --accent:var(--gold-500);
+  --rule:var(--slate-100); --border:var(--slate-200); --border-control:var(--slate-400);
+  --focus:var(--navy-600);
+  --chrome-label:#cbd5e4; --chrome-label-dim:#8fa0bc;
+
+  --r-control:6px; --r-card:10px; --r-overlay:14px;
+  --shadow-overlay:0 8px 24px -4px rgb(14 23 39/.18), 0 2px 6px -2px rgb(14 23 39/.10);
+  --row-h:48px;
+}
+:root[data-density="compact"]{ --row-h:36px; }
+
+*,*::before,*::after{box-sizing:border-box}
+body{
+  margin:0; background:var(--canvas); color:var(--ink);
+  font-family:"Barlow",ui-sans-serif,system-ui,sans-serif;
+  font-size:14px; line-height:20px; -webkit-font-smoothing:antialiased;
+}
+:focus-visible{outline:3px solid rgb(53 80 127/.32); outline-offset:1px; border-radius:4px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+.mono{font-family:"IBM Plex Mono",ui-monospace,monospace; font-variant-numeric:tabular-nums}
+.cond{font-family:"Barlow Condensed","Barlow",sans-serif; text-transform:uppercase; letter-spacing:.06em}
+
+/* ─── Harness de protótipo — NÃO faz parte do produto ─────────── */
+.harness{
+  background:var(--navy-950); color:var(--chrome-label); padding:8px 16px;
+  display:flex; flex-wrap:wrap; align-items:center; gap:12px; font-size:12px;
+  border-bottom:2px solid var(--gold-500);
+}
+.harness b{color:var(--gold-400); font-weight:600; letter-spacing:.04em}
+.harness .grp{display:flex; gap:4px; align-items:center}
+.harness button{
+  font:inherit; font-family:"Barlow",sans-serif; background:transparent; color:var(--chrome-label);
+  border:1px solid rgb(255 255 255/.22); border-radius:var(--r-control);
+  padding:3px 9px; cursor:pointer; transition:background .1s,color .1s;
+}
+.harness button:hover{background:rgb(255 255 255/.10)}
+.harness button[aria-pressed="true"]{background:var(--gold-500); color:var(--navy-900); border-color:var(--gold-500); font-weight:600}
+.harness .sep{width:1px; height:16px; background:rgb(255 255 255/.18)}
+
+/* ─── App Shell ───────────────────────────────────────────────── */
+.app{display:grid; grid-template-columns:240px 1fr; min-height:640px}
+
+/* ─── Sidebar ─────────────────────────────────────────────────── */
+.side{background:var(--chrome); display:flex; flex-direction:column; padding-bottom:8px}
+.side-brand{
+  height:56px; display:flex; align-items:center; gap:9px; padding:0 16px;
+  border-bottom:1px solid rgb(255 255 255/.10);
+}
+.side-brand .mark{
+  width:26px; height:26px; border-radius:5px; flex:none;
+  background:linear-gradient(145deg,var(--gold-500),var(--gold-700));
+  display:grid; place-items:center; color:var(--navy-900); font-weight:600; font-size:13px;
+}
+.side-brand span{color:#fff; font-weight:600; font-size:15px; letter-spacing:-.01em}
+.side nav{flex:1; padding:12px 8px; display:flex; flex-direction:column; gap:16px; overflow-y:auto}
+.side-grp{display:flex; flex-direction:column; gap:2px}
+.side-grp h3{
+  margin:0 0 4px; padding:0 10px; font-size:11px; font-weight:600; color:var(--chrome-label-dim);
+  font-family:"Barlow Condensed",sans-serif; text-transform:uppercase; letter-spacing:.09em;
+}
+.side a{
+  display:flex; align-items:center; gap:10px; padding:0 10px; height:34px;
+  color:var(--chrome-label); text-decoration:none; font-size:13.5px; border-radius:var(--r-control);
+  position:relative; transition:background .1s,color .1s;
+}
+.side a:hover{background:rgb(255 255 255/.07); color:#fff}
+.side a[aria-current="page"]{background:var(--navy-800); color:#fff; font-weight:500}
+.side a[aria-current="page"]::before{
+  content:""; position:absolute; left:-8px; top:50%; transform:translateY(-50%);
+  width:3px; height:20px; border-radius:0 3px 3px 0; background:var(--accent);
+}
+.side a svg{flex:none; opacity:.86}
+.side-foot{padding:8px 8px 0; margin-top:auto; border-top:1px solid rgb(255 255 255/.10)}
+.side-user{display:flex; align-items:center; gap:9px; padding:8px 10px 2px}
+.side-user .av{
+  width:28px; height:28px; border-radius:999px; background:var(--navy-700); flex:none;
+  display:grid; place-items:center; color:#fff; font-size:11px; font-weight:600;
+}
+.side-user div{min-width:0}
+.side-user b{display:block; color:#fff; font-size:12.5px; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.side-user small{display:block; color:var(--chrome-label-dim); font-size:11px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+
+/* ─── Coluna principal ────────────────────────────────────────── */
+.main{display:flex; flex-direction:column; min-width:0; background:var(--canvas)}
+
+/* ─── ContextBar ──────────────────────────────────────────────── */
+.ctx{
+  height:56px; flex:none; background:var(--surface); border-bottom:1px solid var(--border);
+  display:flex; align-items:center; gap:20px; padding:0 24px; overflow-x:auto;
+}
+.ctx .field{display:flex; align-items:center; gap:7px; white-space:nowrap}
+.ctx label{font-size:11px; color:var(--ink-subtle); font-family:"Barlow Condensed",sans-serif;
+  text-transform:uppercase; letter-spacing:.08em; font-weight:600}
+.sel{
+  font:inherit; font-family:"Barlow",sans-serif; font-size:13.5px; color:var(--ink); font-weight:500;
+  background:var(--surface); border:1px solid var(--border-control); border-radius:var(--r-control);
+  height:32px; padding:0 26px 0 9px; cursor:pointer; min-width:0;
+  appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%235d6b80' stroke-width='2.2' stroke-linecap='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat:no-repeat; background-position:right 7px center;
+}
+.sel:hover{border-color:var(--navy-400)}
+
+/* ─── PageHeader ──────────────────────────────────────────────── */
+.head{padding:18px 24px 16px; flex:none}
+.crumb{display:flex; align-items:center; gap:5px; font-size:12.5px; color:var(--ink-subtle); margin-bottom:5px}
+.crumb a{color:var(--link); text-decoration:none}
+.crumb a:hover{text-decoration:underline}
+.crumb svg{opacity:.5}
+.crumb span[aria-current]{color:var(--ink)}
+.head-row{display:flex; align-items:flex-start; justify-content:space-between; gap:16px; flex-wrap:wrap}
+.head h1{margin:0; font-size:20px; line-height:26px; font-weight:600; letter-spacing:-.015em; text-wrap:balance}
+.head p{margin:2px 0 0; font-size:13px; color:var(--ink-muted)}
+.head-actions{display:flex; gap:8px; flex-wrap:wrap}
+
+/* ─── Botões ──────────────────────────────────────────────────── */
+.btn{
+  font:inherit; font-family:"Barlow",sans-serif; font-weight:600; font-size:13.5px;
+  height:40px; padding:0 16px; border-radius:var(--r-control); border:1px solid transparent;
+  display:inline-flex; align-items:center; gap:7px; cursor:pointer; white-space:nowrap;
+  transition:background .1s,border-color .1s,color .1s;
+}
+.btn-primary{background:var(--action); color:#fff}
+.btn-primary:hover{background:var(--action-hover)}
+.btn-accent{background:var(--accent); color:var(--navy-800)}
+.btn-accent:hover{background:var(--gold-400)}
+.btn-secondary{background:var(--surface); color:var(--slate-800); border-color:var(--border-control)}
+.btn-secondary:hover{background:var(--navy-50)}
+.btn-ghost{background:transparent; color:var(--link)}
+.btn-ghost:hover{background:var(--navy-50)}
+.btn-sm{height:32px; padding:0 11px; font-size:13px}
+
+/* ─── KPIs ────────────────────────────────────────────────────── */
+.kpis{display:grid; grid-template-columns:repeat(4,1fr); gap:12px; padding:0 24px 16px}
+.kpi{
+  background:var(--surface); border:1px solid var(--border); border-radius:var(--r-card);
+  padding:13px 15px; text-decoration:none; color:inherit; display:block;
+  position:relative; overflow:hidden; transition:border-color .1s,background .1s;
+}
+.kpi::before{content:""; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--rail)}
+.kpi:hover{border-color:var(--navy-400); background:var(--navy-50)}
+.kpi .v{font-size:26px; line-height:30px; font-weight:500; color:var(--ink)}
+.kpi .l{display:flex; align-items:center; gap:6px; margin-top:3px; font-size:11px; color:var(--ink-muted);
+  font-family:"Barlow Condensed",sans-serif; text-transform:uppercase; letter-spacing:.07em; font-weight:600}
+.kpi .dot{width:7px; height:7px; border-radius:999px; background:var(--rail); flex:none}
+
+/* ─── FilterBar ───────────────────────────────────────────────── */
+.filters{
+  display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+  padding:12px 16px; background:var(--surface);
+  border:1px solid var(--border); border-bottom:0; border-radius:var(--r-card) var(--r-card) 0 0;
+}
+.search{position:relative; flex:1 1 220px; max-width:320px; min-width:160px}
+.search svg{position:absolute; left:9px; top:50%; transform:translateY(-50%); color:var(--ink-subtle)}
+.search input{
+  font:inherit; font-family:"Barlow",sans-serif; font-size:13.5px; width:100%; height:36px;
+  padding:0 10px 0 30px; color:var(--ink);
+  border:1px solid var(--border-control); border-radius:var(--r-control); background:var(--surface);
+}
+.search input::placeholder{color:var(--ink-subtle)}
+.search input:focus{border-color:var(--focus); outline:3px solid rgb(53 80 127/.30); outline-offset:0}
+.chk{display:flex; align-items:center; gap:7px; font-size:13.5px; color:var(--ink-muted); cursor:pointer; user-select:none; height:36px}
+.chk input{width:16px; height:16px; accent-color:var(--action); cursor:pointer}
+.seg{display:inline-flex; background:var(--sunken); border-radius:var(--r-control); padding:2px; gap:2px}
+.seg button{
+  font:inherit; font-family:"Barlow",sans-serif; font-size:12.5px; font-weight:500; color:var(--ink-muted);
+  background:transparent; border:0; border-radius:4px; padding:5px 11px; cursor:pointer; transition:background .1s,color .1s;
+}
+.seg button[aria-pressed="true"]{background:var(--surface); color:var(--ink); font-weight:600; box-shadow:0 1px 2px rgb(14 23 39/.10)}
+.spacer{flex:1}
+
+/* ─── Tabela ──────────────────────────────────────────────────── */
+.tablewrap{
+  background:var(--surface); border:1px solid var(--border); border-radius:0 0 var(--r-card) var(--r-card);
+  overflow-x:auto; margin:0 24px 24px;
+}
+.filters{margin:0 24px}
+table{border-collapse:collapse; width:100%; min-width:640px}
+thead th{
+  position:sticky; top:0; background:var(--sunken); z-index:1;
+  font-family:"Barlow Condensed",sans-serif; text-transform:uppercase; letter-spacing:.07em;
+  font-size:11.5px; font-weight:600; color:var(--ink-muted); text-align:left;
+  padding:8px 12px; border-bottom:1px solid var(--border); white-space:nowrap;
+}
+thead th.num{text-align:right}
+tbody tr{border-bottom:1px solid var(--rule); transition:background .1s}
+tbody tr:last-child{border-bottom:0}
+tbody tr:hover{background:var(--navy-50)}
+tbody td{padding:0 12px; height:var(--row-h); font-size:13.5px; vertical-align:middle; transition:height .16s ease-out}
+:root[data-density="compact"] tbody td{font-size:13px}
+td.rail{width:3px; padding:0; position:relative}
+td.rail::before{content:""; position:absolute; inset:0; background:var(--rail,transparent)}
+td.num{text-align:right}
+.plan-name{font-weight:500; color:var(--ink); display:block}
+.plan-sub{font-size:11.5px; color:var(--ink-subtle); display:block; margin-top:1px}
+.acts{display:flex; gap:4px; justify-content:flex-end; white-space:nowrap}
+.act{
+  font:inherit; font-family:"Barlow",sans-serif; font-size:12.5px; font-weight:500;
+  display:inline-flex; align-items:center; gap:5px; height:30px; padding:0 9px;
+  border:1px solid transparent; border-radius:var(--r-control); background:transparent;
+  color:var(--ink-muted); cursor:pointer; transition:background .1s,color .1s,border-color .1s;
+}
+.act:hover{background:var(--navy-50); color:var(--action); border-color:var(--border)}
+.act.danger:hover{background:var(--st-aa-bg); color:var(--st-aa-fg); border-color:#f3c9c9}
+
+/* ─── Badge de status ─────────────────────────────────────────── */
+.badge{
+  display:inline-flex; align-items:center; gap:5px; font-size:12px; font-weight:500;
+  padding:2px 8px; border-radius:var(--r-control); white-space:nowrap;
+  background:var(--bg); color:var(--fg);
+}
+.badge .dot{width:6px; height:6px; border-radius:999px; background:var(--fg); flex:none; opacity:.75}
+.s-prev{--fg:var(--st-prev-fg); --bg:var(--st-prev-bg); --rail:transparent}
+.s-rp  {--fg:var(--st-rp-fg);   --bg:var(--st-rp-bg);   --rail:var(--st-rp-rail)}
+.s-ra  {--fg:var(--st-ra-fg);   --bg:var(--st-ra-bg);   --rail:var(--st-ra-rail)}
+.s-ap  {--fg:var(--st-ap-fg);   --bg:var(--st-ap-bg);   --rail:var(--st-ap-rail)}
+.s-aa  {--fg:var(--st-aa-fg);   --bg:var(--st-aa-bg);   --rail:var(--st-aa-rail)}
+.s-ok  {--fg:var(--st-ok-fg);   --bg:var(--st-ok-bg);   --rail:var(--st-ok-rail)}
+.s-off {--fg:var(--st-off-fg);  --bg:var(--st-off-bg);  --rail:transparent}
+tr.inactive td:not(.rail){color:var(--ink-subtle)}
+tr.inactive .plan-name{color:var(--ink-subtle); font-weight:400}
+
+/* ─── Estados ─────────────────────────────────────────────────── */
+.state{padding:56px 24px; text-align:center; max-width:440px; margin:0 auto}
+.state .ic{
+  width:44px; height:44px; border-radius:var(--r-card); display:grid; place-items:center;
+  margin:0 auto 14px; background:var(--sunken); color:var(--slate-300);
+}
+.state h3{margin:0 0 6px; font-size:16px; line-height:22px; font-weight:600; color:var(--ink); text-wrap:balance}
+.state p{margin:0 0 16px; font-size:13.5px; line-height:19px; color:var(--ink-muted); text-wrap:pretty}
+.state.err .ic{background:var(--st-aa-bg); color:var(--st-aa-fg)}
+.state.err h3{color:var(--st-aa-fg)}
+.state .detail{
+  font-family:"IBM Plex Mono",monospace; font-size:11.5px; color:var(--ink-subtle);
+  background:var(--sunken); border:1px solid var(--border); border-radius:var(--r-control);
+  padding:7px 10px; margin:0 0 16px; text-align:left; overflow-x:auto;
+}
+.sk{background:var(--sunken); border-radius:var(--r-control); animation:pulse 1.5s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.55}}
+@media (prefers-reduced-motion:reduce){.sk{animation:none}}
+
+/* ─── Nav inferior (mobile) ───────────────────────────────────── */
+.botnav{display:none}
+
+/* ─── Responsivo ──────────────────────────────────────────────── */
+@media (max-width:1023px){
+  .app{grid-template-columns:64px 1fr}
+  .side-brand span,.side-grp h3,.side a span,.side-user div{display:none}
+  .side-brand{justify-content:center; padding:0}
+  .side a{justify-content:center; padding:0}
+  .side a[aria-current="page"]::before{left:-8px}
+  .side-user{justify-content:center; padding:8px 0 2px}
+  .kpis{grid-template-columns:repeat(2,1fr)}
+  [data-priority="wide"]{display:none}
+}
+@media (max-width:639px){
+  .app{grid-template-columns:1fr}
+  .side{display:none}
+  .botnav{
+    display:flex; position:sticky; bottom:0; z-index:20; background:var(--chrome);
+    border-top:1px solid rgb(255 255 255/.10); height:64px;
+  }
+  .botnav a{
+    flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px;
+    color:var(--chrome-label-dim); text-decoration:none; font-size:10.5px; font-weight:500; min-height:48px;
+  }
+  .botnav a[aria-current="page"]{color:var(--gold-500)}
+  .ctx{height:auto; padding:10px 16px; flex-wrap:wrap; gap:10px 16px}
+  .head,.kpis{padding-left:16px; padding-right:16px}
+  .filters,.tablewrap{margin-left:16px; margin-right:16px}
+  .kpis{grid-template-columns:repeat(2,1fr)}
+  table{min-width:0}
+  [data-priority="lg"]{display:none}
+  .act span{display:none}
+  .act{padding:0; width:36px; justify-content:center}
+  :root{--row-h:48px!important}
+  .seg{display:none}
+}
+</style>
+
+<!-- ═══ HARNESS DE PROTÓTIPO — não faz parte do produto ═══ -->
+<div class="harness">
+  <b>PROTÓTIPO</b>
+  <span style="opacity:.65">Tela de Planejamento · validação visual · sem lógica real</span>
+  <div class="sep"></div>
+  <div class="grp">
+    <span style="opacity:.65">Estado:</span>
+    <button data-state="data" aria-pressed="true">Com dados</button>
+    <button data-state="loading" aria-pressed="false">Carregando</button>
+    <button data-state="empty" aria-pressed="false">Vazio</button>
+    <button data-state="error" aria-pressed="false">Erro</button>
+  </div>
+  <div class="sep"></div>
+  <div class="grp">
+    <span style="opacity:.65">Densidade:</span>
+    <button data-density="comfortable" aria-pressed="true">Completo</button>
+    <button data-density="compact" aria-pressed="false">Compacto</button>
+  </div>
+</div>
+
+<div class="app">
+  <!-- ═══ SIDEBAR ═══ -->
+  <aside class="side">
+    <div class="side-brand">
+      <div class="mark">A</div>
+      <span>AgroPlan</span>
+    </div>
+    <nav>
+      <div class="side-grp">
+        <a href="#"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg><span>Início</span></a>
+        <a href="#"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg><span>Estoque</span></a>
+      </div>
+      <div class="side-grp">
+        <h3>Defensivos</h3>
+        <a href="#" aria-current="page"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg><span>Planejar Manejo</span></a>
+        <a href="#"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect width="8" height="4" x="8" y="2" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M9 14h6M9 18h4"/></svg><span>Recomendação</span></a>
+        <a href="#"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18M8 2v4M16 2v4"/></svg><span>Calendário</span></a>
+      </div>
+      <div class="side-grp">
+        <h3>Relatórios</h3>
+        <a href="#"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="6"/><rect x="12" y="8" width="3" height="10"/><rect x="17" y="5" width="3" height="13"/></svg><span>Geral Fazendas</span></a>
+        <a href="#"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"/><path d="M14 2v5h5M9 13h6M9 17h4"/></svg><span>Manejo por Talhão</span></a>
+      </div>
+      <div class="side-grp">
+        <h3>Cadastros</h3>
+        <a href="#"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/></svg><span>Clientes</span></a>
+        <a href="#"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M2 22V7l7-5 7 5v15"/><path d="M16 11h4a2 2 0 0 1 2 2v9M6 22v-5h6v5"/></svg><span>Fazendas</span></a>
+        <a href="#"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5M12 22V12"/></svg><span>Produtos</span></a>
+      </div>
+    </nav>
+    <div class="side-foot">
+      <a href="#" style="margin:0 0 2px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1"/></svg><span>Configurações</span></a>
+      <div class="side-user">
+        <div class="av">TB</div>
+        <div><b>Tiago Barbosa</b><small>Terram Soluções</small></div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ═══ PRINCIPAL ═══ -->
+  <div class="main">
+
+    <!-- ContextBar -->
+    <div class="ctx">
+      <div class="field">
+        <label for="c1">Cliente</label>
+        <select class="sel" id="c1">
+          <option>Todos os clientes</option>
+          <option selected>Agropecuária Vale Verde</option>
+          <option>Fazenda Santa Helena</option>
+          <option>Grupo Rio Formoso</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="c2">Fazenda</label>
+        <select class="sel" id="c2">
+          <option selected>Todas as fazendas</option>
+          <option>Cascata</option>
+          <option>Retirinho</option>
+          <option>Olhos d'Água</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="c3">Safra</label>
+        <select class="sel" id="c3">
+          <option selected>2026/27</option>
+          <option>2025/26 e 2026/27</option>
+          <option>Todas as safras</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- PageHeader -->
+    <div class="head">
+      <div class="crumb">
+        <a href="#">Defensivos</a>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+        <span aria-current="page">Planejar Manejo</span>
+      </div>
+      <div class="head-row">
+        <div>
+          <h1>Planejar Manejo</h1>
+          <p>12 planejamentos em <strong>Agropecuária Vale Verde</strong> · safra 2026/27</p>
+        </div>
+        <div class="head-actions">
+          <button class="btn btn-secondary"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></svg>Exportar</button>
+          <button class="btn btn-primary"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M12 5v14"/></svg>Novo planejamento</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- KPIs -->
+    <div class="kpis">
+      <a class="kpi s-aa" href="#"><div class="v mono">3</div><div class="l"><span class="dot"></span>Aplicação atrasada</div></a>
+      <a class="kpi s-ra" href="#"><div class="v mono">5</div><div class="l"><span class="dot"></span>Recomendação atrasada</div></a>
+      <a class="kpi s-rp" href="#"><div class="v mono">11</div><div class="l"><span class="dot"></span>Recomendação pendente</div></a>
+      <a class="kpi s-ap" href="#"><div class="v mono">8</div><div class="l"><span class="dot"></span>Aplicação pendente</div></a>
+    </div>
+
+    <!-- FilterBar -->
+    <div class="filters">
+      <div class="search">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <input type="search" placeholder="Buscar planejamento…" aria-label="Buscar planejamento">
+      </div>
+      <select class="sel" aria-label="Filtrar por status"><option>Todos os status</option><option>Atrasados</option><option>Pendentes</option><option>Concluídos</option></select>
+      <select class="sel" aria-label="Filtrar por cultura"><option>Todas as culturas</option><option>Soja</option><option>Milho</option><option>Algodão</option></select>
+      <label class="chk"><input type="checkbox"> Mostrar arquivados</label>
+      <div class="spacer"></div>
+      <div class="seg" role="group" aria-label="Densidade da tabela">
+        <button data-density="comfortable" aria-pressed="true">Completo</button>
+        <button data-density="compact" aria-pressed="false">Compacto</button>
+      </div>
+    </div>
+
+    <!-- Tabela / Estados -->
+    <div class="tablewrap" id="panel"></div>
+
+  </div>
+</div>
+
+<!-- Nav inferior (mobile) -->
+<nav class="botnav" aria-label="Navegação principal">
+  <a href="#"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Início</a>
+  <a href="#" aria-current="page"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10"/><path d="M2 21c0-3 1.85-5.36 5.08-6"/></svg>Planejar</a>
+  <a href="#"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect width="8" height="4" x="8" y="2" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>Recomend.</a>
+  <a href="#"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18M8 2v4M16 2v4"/></svg>Calendário</a>
+  <a href="#"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>Mais</a>
+</nav>
+
+<script>
+const ROWS = [
+  {n:"Soja precoce — Cascata",       s:"aa", sl:"Aplicação atrasada",     c:"Agrop. Vale Verde", f:"Cascata",      sa:"2026/27", cu:"Soja",    a:"1.284,50", t:14, u:"há 2 dias"},
+  {n:"Milho safrinha — Retirinho",   s:"ra", sl:"Recomendação atrasada",  c:"Agrop. Vale Verde", f:"Retirinho",    sa:"2026/27", cu:"Milho",   a:"842,00",   t:9,  u:"há 4 dias"},
+  {n:"Algodão — Olhos d'Água",       s:"rp", sl:"Recomendação pendente",  c:"Agrop. Vale Verde", f:"Olhos d'Água", sa:"2026/27", cu:"Algodão", a:"2.107,30", t:22, u:"ontem"},
+  {n:"Soja tardia — Cascata",        s:"ap", sl:"Aplicação pendente",     c:"Agrop. Vale Verde", f:"Cascata",      sa:"2026/27", cu:"Soja",    a:"967,80",   t:11, u:"hoje"},
+  {n:"Milho 2ª safra — Ipê",         s:"rp", sl:"Recomendação pendente",  c:"Agrop. Vale Verde", f:"Ipê",          sa:"2026/27", cu:"Milho",   a:"455,20",   t:6,  u:"há 6 dias"},
+  {n:"Soja — Santa Maria",           s:"ok", sl:"Concluída",              c:"Agrop. Vale Verde", f:"Santa Maria",  sa:"2026/27", cu:"Soja",    a:"1.630,00", t:18, u:"há 12 dias"},
+  {n:"Braquiária — Padrão",          s:"prev", sl:"Prevista",             c:"Agrop. Vale Verde", f:"Padrão",       sa:"2026/27", cu:"Braq.",   a:"310,45",   t:4,  u:"há 3 dias"},
+  {n:"Algodão — Itaúba (arquivado)", s:"off", sl:"Arquivado",             c:"Agrop. Vale Verde", f:"Itaúba",       sa:"2025/26", cu:"Algodão", a:"1.002,10", t:12, u:"há 3 meses", inactive:true},
+];
+
+const ICON_EDIT = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4Z"/></svg>';
+const ICON_ARCH = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect width="20" height="5" x="2" y="3" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8M10 12h4"/></svg>';
+
+function head(){
+  return `<thead><tr>
+    <th class="rail" aria-hidden="true"></th>
+    <th>Planejamento</th>
+    <th>Status</th>
+    <th data-priority="lg">Fazenda</th>
+    <th data-priority="wide">Cultura</th>
+    <th data-priority="wide" class="num">Área (ha)</th>
+    <th data-priority="wide" class="num">Talhões</th>
+    <th data-priority="wide">Atualizado</th>
+    <th style="text-align:right">Ações</th>
+  </tr></thead>`;
+}
+
+function renderData(){
+  const body = ROWS.map(r => `
+    <tr class="s-${r.s}${r.inactive ? " inactive" : ""}">
+      <td class="rail"></td>
+      <td><span class="plan-name">${r.n}</span><span class="plan-sub">${r.c}</span></td>
+      <td><span class="badge s-${r.s}"><span class="dot"></span>${r.sl}</span></td>
+      <td data-priority="lg">${r.f}</td>
+      <td data-priority="wide">${r.cu}</td>
+      <td data-priority="wide" class="num mono">${r.a}</td>
+      <td data-priority="wide" class="num mono">${r.t}</td>
+      <td data-priority="wide" style="color:var(--ink-subtle);font-size:12.5px">${r.u}</td>
+      <td><div class="acts">
+        <button class="act">${ICON_EDIT}<span>Editar</span></button>
+        <button class="act danger">${ICON_ARCH}<span>Arquivar</span></button>
+      </div></td>
+    </tr>`).join("");
+  return `<table>${head()}<tbody>${body}</tbody></table>`;
+}
+
+function renderLoading(){
+  const w = [46,17,13,9,8,7];
+  const rows = Array.from({length:7}, () => `
+    <tr>
+      <td class="rail"></td>
+      ${w.map((p,i) => `<td${i>2?' data-priority="wide"':(i===2?' data-priority="lg"':"")}><div class="sk" style="height:11px;width:${p*1.6}%"></div></td>`).join("")}
+      <td><div class="acts"><div class="sk" style="height:11px;width:78px"></div></div></td>
+    </tr>`).join("");
+  return `<table>${head()}<tbody>${rows}</tbody></table>`;
+}
+
+function renderEmpty(){
+  return `<div class="state">
+    <div class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10"/><path d="M2 21c0-3 1.85-5.36 5.08-6"/></svg></div>
+    <h3>Nenhum planejamento nesta safra</h3>
+    <p>Planejamentos aparecem aqui quando têm cliente, fazenda e safra definidos. Rascunhos ficam visíveis apenas para quem os criou.</p>
+    <button class="btn btn-primary" style="margin:0 auto"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M12 5v14"/></svg>Novo planejamento</button>
+  </div>`;
+}
+
+function renderError(){
+  return `<div class="state err">
+    <div class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg></div>
+    <h3>Não foi possível carregar os planejamentos</h3>
+    <p>A lista não foi carregada — isto não significa que não existam planejamentos. Verifique sua conexão e tente novamente.</p>
+    <p class="detail">503 · upstream connect error or disconnect/reset before headers</p>
+    <button class="btn btn-secondary" style="margin:0 auto"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M3 12a9 9 0 0 1 9-9 9 9 0 0 1 6.7 3L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9 9 0 0 1-6.7-3L3 16"/><path d="M3 21v-5h5"/></svg>Tentar novamente</button>
+  </div>`;
+}
+
+const panel = document.getElementById("panel");
+const VIEWS = {data:renderData, loading:renderLoading, empty:renderEmpty, error:renderError};
+
+function setState(s){
+  panel.innerHTML = VIEWS[s]();
+  document.querySelectorAll("[data-state]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.state === s)));
+}
+function setDensity(d){
+  document.documentElement.setAttribute("data-density", d);
+  document.querySelectorAll("[data-density]").forEach(b => {
+    if (b.tagName === "BUTTON") b.setAttribute("aria-pressed", String(b.dataset.density === d));
+  });
+}
+
+document.querySelectorAll("[data-state]").forEach(b => b.addEventListener("click", () => setState(b.dataset.state)));
+document.querySelectorAll("button[data-density]").forEach(b => b.addEventListener("click", () => setDensity(b.dataset.density)));
+
+setState("data");
+setDensity("comfortable");
+</script>

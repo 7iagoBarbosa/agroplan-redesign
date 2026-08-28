@@ -1,0 +1,11 @@
+# Capturas das plataformas de referência (Cropwise, Farmbox).
+# 17 MB de binários e — mais importante — contêm dados reais de clientes.
+# O 02-market-benchmark.md já extraiu em texto tudo o que importava.
+docs/redesign/assets/
+
+# O repositório do produto é clonado à parte (hidekimva/Agro-Plataform)
+Agro-Plataform/
+
+# Ambiente local — nunca versionar
+.env
+*.local
